@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 /// Response to a `CreateStreamRequest`
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Init {
     pub stream_name: String,
 }
@@ -25,14 +26,15 @@ impl Init {
 
 /// Confirm push operation on the mailbox
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct PushConfirm {
-    pub request_id: usize,
+    pub request_id: u64,
     pub status: Status,
-    pub index: usize, // uint
+    pub index: u64, // uint
 }
 
 impl PushConfirm {
-    pub fn new<S: Into<Status>>(request_id: usize, status: S, index: usize) -> ProtocolPayload {
+    pub fn new<S: Into<Status>>(request_id: u64, status: S, index: u64) -> ProtocolPayload {
         ProtocolPayload::new(
             "stream_push",
             Self {
@@ -46,6 +48,7 @@ impl PushConfirm {
 
 /// A simple status code
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub enum Status {
     Ok,
     Error,
@@ -69,13 +72,14 @@ impl From<Option<()>> for Status {
 
 /// Response to a `PullRequest`
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct PullResponse {
-    pub request_id: usize,
+    pub request_id: u64,
     pub messages: Vec<StreamMessage>,
 }
 
 impl PullResponse {
-    pub fn new<T: Into<Vec<StreamMessage>>>(request_id: usize, messages: T) -> ProtocolPayload {
+    pub fn new<T: Into<Vec<StreamMessage>>>(request_id: u64, messages: T) -> ProtocolPayload {
         ProtocolPayload::new(
             "stream_pull",
             Self {
@@ -88,19 +92,21 @@ impl PullResponse {
 
 /// A stream message with a reference index
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct StreamMessage {
     /// Index of the message in the stream
-    pub index: usize,
+    pub index: u64,
     /// Encoded data of the message
     pub data: Vec<u8>,
 }
 
 /// The index return payload
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Index {
     pub stream_name: String,
     pub client_id: String,
-    pub index: usize,
+    pub index: u64,
 }
 
 /// A convenience enum to wrap all possible response types

@@ -4,6 +4,7 @@ use crate::protocols::ProtocolPayload;
 use serde::{Deserialize, Serialize};
 
 /// Request a new mailbox to be created
+#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CreateStreamRequest {
     pub stream_name: Option<String>,
@@ -21,14 +22,15 @@ impl CreateStreamRequest {
 }
 
 /// Push a message into the mailbox
+#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PushRequest {
-    pub request_id: usize, // uint
+    pub request_id: u64, // uint
     pub data: Vec<u8>,
 }
 
 impl PushRequest {
-    pub fn new<T: Into<Vec<u8>>>(request_id: usize, data: T) -> ProtocolPayload {
+    pub fn new<T: Into<Vec<u8>>>(request_id: u64, data: T) -> ProtocolPayload {
         ProtocolPayload::new(
             "stream_push",
             Self {
@@ -40,15 +42,16 @@ impl PushRequest {
 }
 
 /// Pull messages from the mailbox
+#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PullRequest {
-    pub request_id: usize,
-    pub index: usize,
-    pub limit: usize,
+    pub request_id: u64,
+    pub index: u64,
+    pub limit: u64,
 }
 
 impl PullRequest {
-    pub fn new(request_id: usize, index: usize, limit: usize) -> ProtocolPayload {
+    pub fn new(request_id: u64, index: u64, limit: u64) -> ProtocolPayload {
         ProtocolPayload::new(
             "stream_pull",
             Self {
@@ -61,6 +64,7 @@ impl PullRequest {
 }
 
 /// Index request protocols to get and save indices
+#[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Index {
     Get {
@@ -70,7 +74,7 @@ pub enum Index {
     Save {
         stream_name: String,
         client_id: String,
-        index: usize,
+        index: u64,
     },
 }
 
@@ -85,7 +89,7 @@ impl Index {
         )
     }
 
-    pub fn save<S: Into<String>>(stream_name: S, client_id: S, index: usize) -> ProtocolPayload {
+    pub fn save<S: Into<String>>(stream_name: S, client_id: S, index: u64) -> ProtocolPayload {
         ProtocolPayload::new(
             "stream_index",
             Self::Save {
@@ -95,4 +99,17 @@ impl Index {
             },
         )
     }
+}
+
+#[test]
+fn generate_requests() {
+    use crate::Message;
+    println!("CreateStreamRequest {:?}", CreateStreamRequest::new(None).encode().unwrap());
+    println!(
+        "PushRequest {:?}",
+        PushRequest::new(5, vec![1, 2, 3, 4]).encode().unwrap()
+    );
+    println!("PullRequest {:?}", PullRequest::new(5, 0, 8).encode().unwrap());
+    println!("Index::get {:?}", Index::get("my_stream", "my-client").encode().unwrap());
+    println!("Index::save {:?}", Index::save("my_tream", "my-client", 0).encode().unwrap());
 }
