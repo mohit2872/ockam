@@ -105,12 +105,24 @@ impl Index {
 #[test]
 fn generate_requests() {
     use crate::Message;
-    println!("CreateStreamRequest {:?}", CreateStreamRequest::new(None).encode().unwrap());
+    println!(
+        "CreateStreamRequest {:?}",
+        CreateStreamRequest::new(None).encode().unwrap()
+    );
     println!(
         "PushRequest {:?}",
         PushRequest::new(5, vec![1, 2, 3, 4]).encode().unwrap()
     );
-    println!("PullRequest {:?}", PullRequest::new(5, 0, 8).encode().unwrap());
-    println!("Index::get {:?}", Index::get("my_stream", "my-client").encode().unwrap());
-    println!("Index::save {:?}", Index::save("my_tream", "my-client", 0).encode().unwrap());
+    println!(
+        "PullRequest {:?}",
+        PullRequest::new(5, 0, 8).encode().unwrap()
+    );
+    println!(
+        "Index::get {:?}",
+        Index::get("my_stream", "my-client").encode().unwrap()
+    );
+    println!(
+        "Index::save {:?}",
+        Index::save("my_tream", "my-client", 0).encode().unwrap()
+    );
 }
