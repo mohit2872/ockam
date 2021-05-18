@@ -2,6 +2,7 @@
 
 use crate::protocols::ProtocolPayload;
 use serde::{Deserialize, Serialize};
+use serde_bare::Uint;
 
 /// Request a new mailbox to be created
 #[repr(C)]
@@ -25,7 +26,7 @@ impl CreateStreamRequest {
 #[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PushRequest {
-    pub request_id: u64, // uint
+    pub request_id: Uint, // uint
     pub data: Vec<u8>,
 }
 
@@ -34,7 +35,7 @@ impl PushRequest {
         ProtocolPayload::new(
             "stream_push",
             Self {
-                request_id,
+                request_id: Uint(request_id),
                 data: data.into(),
             },
         )
@@ -45,9 +46,9 @@ impl PushRequest {
 #[repr(C)]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PullRequest {
-    pub request_id: u64,
-    pub index: u64,
-    pub limit: u64,
+    pub request_id: Uint,
+    pub index: Uint,
+    pub limit: Uint,
 }
 
 impl PullRequest {
@@ -55,9 +56,9 @@ impl PullRequest {
         ProtocolPayload::new(
             "stream_pull",
             Self {
-                request_id,
-                index,
-                limit,
+                request_id: Uint(request_id),
+                index: Uint(index),
+                limit: Uint(limit),
             },
         )
     }
@@ -74,7 +75,7 @@ pub enum Index {
     Save {
         stream_name: String,
         client_id: String,
-        index: u64,
+        index: Uint,
     },
 }
 
@@ -95,7 +96,7 @@ impl Index {
             Self::Save {
                 stream_name: stream_name.into(),
                 client_id: client_id.into(),
-                index,
+                index: Uint(index),
             },
         )
     }

@@ -5,6 +5,7 @@ use crate::{
     Any, Message, ProtocolId, Result, Routed, Worker,
 };
 use serde::{Deserialize, Serialize};
+use serde_bare::Uint;
 
 /// Response to a `CreateStreamRequest`
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -28,9 +29,9 @@ impl Init {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct PushConfirm {
-    pub request_id: u64,
+    pub request_id: Uint,
     pub status: Status,
-    pub index: u64, // uint
+    pub index: Uint,
 }
 
 impl PushConfirm {
@@ -38,8 +39,8 @@ impl PushConfirm {
         ProtocolPayload::new(
             "stream_push",
             Self {
-                request_id,
-                index,
+                request_id: Uint(request_id),
+                index: Uint(index),
                 status: status.into(),
             },
         )
@@ -74,7 +75,7 @@ impl From<Option<()>> for Status {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[repr(C)]
 pub struct PullResponse {
-    pub request_id: u64,
+    pub request_id: Uint,
     pub messages: Vec<StreamMessage>,
 }
 
@@ -83,7 +84,7 @@ impl PullResponse {
         ProtocolPayload::new(
             "stream_pull",
             Self {
-                request_id,
+                request_id: Uint(request_id),
                 messages: messages.into(),
             },
         )
@@ -95,7 +96,7 @@ impl PullResponse {
 #[repr(C)]
 pub struct StreamMessage {
     /// Index of the message in the stream
-    pub index: u64,
+    pub index: Uint,
     /// Encoded data of the message
     pub data: Vec<u8>,
 }
@@ -106,7 +107,7 @@ pub struct StreamMessage {
 pub struct Index {
     pub stream_name: String,
     pub client_id: String,
-    pub index: u64,
+    pub index: Uint,
 }
 
 /// A convenience enum to wrap all possible response types
