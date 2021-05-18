@@ -23,6 +23,9 @@ defmodule Ockam.Example.Stream.BiDirectional.Local do
 
   Ping and pong nodes create local consumers and publishers to exchange messages
   """
+  alias Ockam.SecureChannel
+  alias Ockam.Vault
+  alias Ockam.Vault.Software, as: SoftwareVault
 
   alias Ockam.Example.Stream.Ping
   alias Ockam.Example.Stream.Pong
@@ -97,5 +100,61 @@ defmodule Ockam.Example.Stream.BiDirectional.Local do
 
     ## This is necessary to make sure we don't spawn publisher for each message
     PublisherRegistry.start_link([])
+  end
+
+  def secure_channel_listener() do
+    ensure_tcp(5000)
+    ## PONG worker
+    {:ok, "pong"} = Pong.create(address: "pong")
+
+    create_secure_channel_listener()
+
+    ## Create a local subscription to forward pong_topic messages to local node
+    subscribe("pong_topic")
+  end
+
+  def secure_channel() do
+    ensure_tcp(3000)
+
+    ## PING worker
+    Ping.create(address: "ping")
+
+    ## Subscribe to response topic
+    subscribe("ping_topic")
+
+    ## Create local publisher worker to forward to pong_topic and add metadata to
+    ## messages to send responses to ping_topic
+    {:ok, address} = init_publisher("pong_topic", "ping_topic")
+
+    {:ok, channel} = create_secure_channel([address, "SC_listener"])
+
+    ## Send a message THROUGH the local publisher to the remote worker
+    send_message([channel, "pong"])
+  end
+
+  defp create_secure_channel_listener() do
+    {:ok, vault} = SoftwareVault.init()
+    {:ok, identity} = Vault.secret_generate(vault, type: :curve25519)
+    SecureChannel.create_listener(vault: vault, identity_keypair: identity, address: "SC_listener")
+  end
+
+  defp create_secure_channel(route_to_listener) do
+    {:ok, vault} = SoftwareVault.init()
+    {:ok, identity} = Vault.secret_generate(vault, type: :curve25519)
+
+    {:ok, c} =
+      SecureChannel.create(route: route_to_listener, vault: vault, identity_keypair: identity)
+
+    wait(fn -> SecureChannel.established?(c) end)
+    {:ok, c}
+  end
+
+  defp wait(fun) do
+    case fun.() do
+      true -> :ok
+      false ->
+        :timer.sleep(100)
+        wait(fun)
+    end
   end
 end

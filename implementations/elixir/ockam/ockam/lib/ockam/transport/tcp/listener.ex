@@ -137,6 +137,10 @@ if Code.ensure_loaded?(:ranch) do
 
     @wire_encoder_decoder Ockam.Wire.Binary.V2
 
+    def start_link(ref, _socket, transport, opts) do
+      start_link(ref, transport, opts)
+    end
+
     def start_link(ref, transport, opts) do
       pid = :proc_lib.spawn_link(__MODULE__, :init, [[ref, transport, opts]])
       {:ok, pid}

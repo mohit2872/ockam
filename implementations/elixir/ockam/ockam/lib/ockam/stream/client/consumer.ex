@@ -177,10 +177,8 @@ defmodule Ockam.Stream.Client.Consumer do
         consume_after(@idle_timeout, state)
 
       _msgs ->
-        Logger.info("Messages: #{inspect(messages)}")
         max_index = messages |> Enum.max_by(fn %{index: index} -> index end) |> Map.get(:index)
         commit_index = max_index + 1
-        Logger.info("max index is #{max_index}: save #{commit_index}")
         save_index(commit_index, state)
         process_messages(messages, state)
         consume(commit_index, state)
